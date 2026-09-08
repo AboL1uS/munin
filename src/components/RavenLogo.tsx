@@ -1,0 +1,69 @@
+import React from 'react';
+
+interface RavenLogoProps {
+  className?: string;
+  size?: number;
+}
+
+export const RavenLogo: React.FC<RavenLogoProps> = ({
+  className = 'w-8 h-8',
+}) => {
+  return (
+    <div
+      className={`relative inline-flex items-center justify-center overflow-hidden select-none ${className}`}
+    >
+      <svg
+        viewBox="0 0 1024 1024"
+        fill="currentColor"
+        className="w-full h-full"
+        aria-hidden="true"
+      >
+        <g transform="translate(10, 0)">
+          {/* Raven head silhouette */}
+          <path
+            fillRule="evenodd"
+            d="
+              M 310 330
+              C 350 250 430 220 530 225
+              C 630 230 710 280 780 345
+              C 840 400 900 440 945 470
+              C 915 476 875 472 825 452
+              C 770 430 715 428 650 450
+              C 620 470 625 515 645 565
+              C 665 610 685 660 700 700
+              C 670 685 650 655 635 635
+              C 645 680 670 750 700 785
+              C 665 760 645 725 635 690
+              C 630 735 640 795 670 835
+              C 635 800 610 755 600 705
+              C 585 745 555 795 515 825
+              C 535 775 535 725 510 675
+              C 480 710 445 730 400 725
+              C 430 685 440 640 425 600
+              C 370 620 310 615 245 595
+              C 210 575 245 555 275 540
+              C 240 540 215 520 230 485
+              C 260 490 280 480 295 455
+              C 270 435 275 395 305 370
+              C 308 355 308 342 310 330 Z
+
+              M 535 345
+              C 575 325 630 320 685 338
+              C 715 348 735 362 730 365
+              C 725 368 700 355 670 346
+              C 620 332 575 335 535 345 Z
+
+              M 605 365
+              C 605 350 625 345 645 348
+              C 665 352 675 368 672 385
+              C 668 400 645 405 625 402
+              C 610 398 605 382 605 365 Z
+            "
+          />
+          {/* Dark pupil looking forward */}
+          <circle cx="632" cy="372" r="13" className="fill-[var(--bg-main,#09090b)]" />
+        </g>
+      </svg>
+    </div>
+  );
+};

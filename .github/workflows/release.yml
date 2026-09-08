@@ -1,0 +1,57 @@
+name: Release Munin
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag version for release (e.g. v1.0.0)'
+        required: false
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build & Release Windows App
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Web App (Vite)
+        run: npm run build
+
+      - name: Build Windows Executables (Portable & Installer)
+        run: npx electron-builder --win portable nsis
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ github.ref_name || inputs.tag_name }}
+          name: Munin ${{ github.ref_name || inputs.tag_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            release/*.exe
+            release/*.blockmap
+            release/latest.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,6 @@
+{
+  "name": "Munin",
+  "description": "Munin — персональный трекер обучения, дорожные карты, таймер и активность",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

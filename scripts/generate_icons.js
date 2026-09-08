@@ -1,0 +1,134 @@
+import fs from 'fs';
+import sharp from 'sharp';
+
+// Precise SVG matching the user's uploaded raven head
+const ravenSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <style>
+      .raven-bg { fill: #ffffff; }
+      .raven-body { fill: #0a0a0a; }
+      .raven-feature { fill: #ffffff; }
+      .raven-pupil { fill: #0a0a0a; }
+    </style>
+  </defs>
+  
+  <!-- Canvas background -->
+  <rect width="1024" height="1024" rx="220" class="raven-bg" />
+
+  <g transform="translate(40, 20)">
+    <!-- Main Raven Head Silhouette -->
+    <path class="raven-body" fill-rule="evenodd" d="
+      M 310 330
+      C 350 250 430 220 530 225
+      C 630 230 710 280 780 345
+      C 840 400 900 440 945 470
+      C 915 476 875 472 825 452
+      C 770 430 715 428 650 450
+      C 620 470 625 515 645 565
+      C 665 610 685 660 700 700
+      C 670 685 650 655 635 635
+      C 645 680 670 750 700 785
+      C 665 760 645 725 635 690
+      C 630 735 640 795 670 835
+      C 635 800 610 755 600 705
+      C 585 745 555 795 515 825
+      C 535 775 535 725 510 675
+      C 480 710 445 730 400 725
+      C 430 685 440 640 425 600
+      C 370 620 310 615 245 595
+      C 210 575 245 555 275 540
+      C 240 540 215 520 230 485
+      C 260 490 280 480 295 455
+      C 270 435 275 395 305 370
+      C 308 355 308 342 310 330 Z
+
+      M 535 345
+      C 575 325 630 320 685 338
+      C 715 348 735 362 730 365
+      C 725 368 700 355 670 346
+      C 620 332 575 335 535 345 Z
+
+      M 605 365
+      C 605 350 625 345 645 348
+      C 665 352 675 368 672 385
+      C 668 400 645 405 625 402
+      C 610 398 605 382 605 365 Z
+    " />
+    
+    <!-- Pupil inside the eye -->
+    <circle cx="632" cy="372" r="14" class="raven-pupil" />
+  </g>
+</svg>`;
+
+// Also transparent version for in-app UI
+const transparentRavenSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <g fill="currentColor">
+    <path fill-rule="evenodd" d="
+      M 310 330
+      C 350 250 430 220 530 225
+      C 630 230 710 280 780 345
+      C 840 400 900 440 945 470
+      C 915 476 875 472 825 452
+      C 770 430 715 428 650 450
+      C 620 470 625 515 645 565
+      C 665 610 685 660 700 700
+      C 670 685 650 655 635 635
+      C 645 680 670 750 700 785
+      C 665 760 645 725 635 690
+      C 630 735 640 795 670 835
+      C 635 800 610 755 600 705
+      C 585 745 555 795 515 825
+      C 535 775 535 725 510 675
+      C 480 710 445 730 400 725
+      C 430 685 440 640 425 600
+      C 370 620 310 615 245 595
+      C 210 575 245 555 275 540
+      C 240 540 215 520 230 485
+      C 260 490 280 480 295 455
+      C 270 435 275 395 305 370
+      C 308 355 308 342 310 330 Z
+
+      M 535 345
+      C 575 325 630 320 685 338
+      C 715 348 735 362 730 365
+      C 725 368 700 355 670 346
+      C 620 332 575 335 535 345 Z
+
+      M 605 365
+      C 605 350 625 345 645 348
+      C 665 352 675 368 672 385
+      C 668 400 645 405 625 402
+      C 610 398 605 382 605 365 Z
+    " />
+    <circle cx="632" cy="372" r="14" fill="var(--bg-card, #121215)" />
+  </g>
+</svg>`;
+
+async function generate() {
+  fs.writeFileSync('public/icon.svg', ravenSvg);
+  fs.writeFileSync('public/raven-transparent.svg', transparentRavenSvg);
+  console.log('Saved SVG files to public/');
+
+  const svgBuffer = Buffer.from(ravenSvg);
+
+  // Generate PNG icons using Sharp
+  await sharp(svgBuffer).resize(512, 512).png().toFile('public/pwa-512x512.png');
+  await sharp(svgBuffer).resize(512, 512).png().toFile('public/pwa-maskable-512x512.png');
+  await sharp(svgBuffer).resize(512, 512).png().toFile('public/icon.png');
+  await sharp(svgBuffer).resize(256, 256).png().toFile('public/icon.ico');
+  await sharp(svgBuffer).resize(192, 192).png().toFile('public/pwa-192x192.png');
+  await sharp(svgBuffer).resize(180, 180).png().toFile('public/apple-touch-icon.png');
+  await sharp(svgBuffer).resize(64, 64).png().toFile('public/favicon.ico');
+
+  // Also copy to dist if dist exists
+  if (fs.existsSync('dist')) {
+    await sharp(svgBuffer).resize(512, 512).png().toFile('dist/pwa-512x512.png');
+    await sharp(svgBuffer).resize(192, 192).png().toFile('dist/pwa-192x192.png');
+    await sharp(svgBuffer).resize(180, 180).png().toFile('dist/apple-touch-icon.png');
+    fs.copyFileSync('public/icon.svg', 'dist/icon.svg');
+  }
+
+  console.log('Successfully generated all icons!');
+}
+
+generate().catch(console.error);
