@@ -64,25 +64,14 @@ export default function App() {
   // 2. Activity / Streak log
   const [activity, setActivity] = useState<ActivityMap>(() => loadActivityLog());
 
-  // 3. Learning tracks state with backward-compatible migration
+  // 3. Learning tracks state
   const [tracks, setTracks] = useState<LearningTrack[]>(() => {
     try {
       const saved = localStorage.getItem(TRACKS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           return parsed;
-        }
-      }
-
-      // Check legacy single-track storage to preserve user's previous Java progress
-      const legacySaved = localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (legacySaved) {
-        const legacyParsed = JSON.parse(legacySaved);
-        if (Array.isArray(legacyParsed) && legacyParsed.length > 0) {
-          return INITIAL_TRACKS.map((track) =>
-            track.id === 'track-java' ? { ...track, topics: legacyParsed } : track
-          );
         }
       }
     } catch (e) {
@@ -99,7 +88,7 @@ export default function App() {
     } catch {
       // ignore
     }
-    return 'track-java';
+    return '';
   });
 
   // 5. User profile state
@@ -171,8 +160,16 @@ export default function App() {
 
   // Derive active track safely
   const activeTrack = useMemo(() => {
+    if (tracks.length === 0) return null;
     return tracks.find((t) => t.id === activeTrackId) || tracks[0] || null;
   }, [tracks, activeTrackId]);
+
+  // Keep view consistent if active track is deleted or unavailable
+  useEffect(() => {
+    if (currentView === 'track_detail' && !activeTrack) {
+      setCurrentView('tracks');
+    }
+  }, [currentView, activeTrack]);
 
   // Overall statistics for all tracks
   const globalStats = useMemo(() => {
@@ -332,8 +329,13 @@ export default function App() {
   const handleDeleteTrack = (trackId: string) => {
     setTracks((prev) => {
       const remaining = prev.filter((t) => t.id !== trackId);
-      if (activeTrackId === trackId && remaining.length > 0) {
-        setActiveTrackId(remaining[0].id);
+      if (activeTrackId === trackId) {
+        if (remaining.length > 0) {
+          setActiveTrackId(remaining[0].id);
+        } else {
+          setActiveTrackId('');
+          setCurrentView('tracks');
+        }
       }
       return remaining;
     });
@@ -511,33 +513,23 @@ export default function App() {
 
   // Reset current active track topics or factory reset
   const handleResetCurrentTrack = () => {
-    if (activeTrack?.id === 'track-java') {
-      const javaDefault = INITIAL_TRACKS.find((t) => t.id === 'track-java');
-      if (javaDefault) {
-        updateActiveTrackTopics(() => JSON.parse(JSON.stringify(javaDefault.topics)));
-      }
-    } else if (activeTrack?.id === 'track-javascript') {
-      const jsDefault = INITIAL_TRACKS.find((t) => t.id === 'track-javascript');
-      if (jsDefault) {
-        updateActiveTrackTopics(() => JSON.parse(JSON.stringify(jsDefault.topics)));
-      }
-    } else {
-      updateActiveTrackTopics((prev) =>
-        prev.map((t) => ({
-          ...t,
-          tasks: t.tasks.map((task) => ({ ...task, completed: false })),
-        }))
-      );
-    }
+    if (!activeTrack) return;
+    updateActiveTrackTopics((prev) =>
+      prev.map((t) => ({
+        ...t,
+        tasks: t.tasks.map((task) => ({ ...task, completed: false })),
+      }))
+    );
   };
 
   const handleResetAllData = () => {
-    setTracks(INITIAL_TRACKS);
+    setTracks([]);
     setProfile(INITIAL_PROFILE);
-    setActiveTrackId('track-java');
+    setActiveTrackId('');
     localStorage.removeItem(TRACKS_STORAGE_KEY);
     localStorage.removeItem(PROFILE_STORAGE_KEY);
     localStorage.removeItem(LEGACY_STORAGE_KEY);
+    localStorage.removeItem(ACTIVE_TRACK_STORAGE_KEY);
     setCurrentView('tracks');
   };
 
