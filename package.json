@@ -23,6 +23,16 @@
       "electron.cjs",
       "package.json"
     ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "public.app-category.education",
+      "icon": "public/icon.png"
+    },
     "win": {
       "target": [
         {
@@ -39,6 +49,8 @@
         }
       ],
       "icon": "public/icon.png"
+
+    
     },
     "nsis": {
       "oneClick": true,
